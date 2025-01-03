@@ -210,6 +210,20 @@ async function run() {
           .json({ success: false, message: "Failed to delete message" });
       }
     });
+
+
+    // services
+    const engrSakibServices = client
+      .db("engrsakibProtfolio")
+      .collection("services");
+
+      app.get("/services", async (req, res) => {
+        const cursor = engrSakibServices.find();
+        const result = await cursor.toArray();
+        res.send(result);
+      });
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();

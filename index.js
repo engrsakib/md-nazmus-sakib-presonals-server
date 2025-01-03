@@ -3,9 +3,11 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
 const port = process.env.PORT || 5000;
 //
 
@@ -116,16 +118,50 @@ async function run() {
       .db("engrsakibProtfolio")
       .collection("massage");
 
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL_USER, // Your email address
+        pass: process.env.EMAIL_PASS, // Your email app password
+      },
+    });
+
+    async function sendEmailToAdmin(name, email, subject, message) {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: "info@engrsakib.com", // Replace with your email address
+        subject: `New Contact Message from ${name}`,
+        text: `
+      You have received a new message:
+
+      Name: ${name}
+      Email: ${email}
+      Subject: ${subject}
+      Message: ${message}
+    `,
+      };
+
+      await transporter.sendMail(mailOptions);
+    }
+
     app.post("/contact", async (req, res) => {
       try {
         const talk = req.body;
+        const { name, email, subject, message } = req.body;
         // Save to database or process the data
         const result = await engrSakibMassage.insertOne(talk);
+        try {
+          await sendEmailToAdmin(name, email, subject, message);
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+        }
         res.send(result);
       } catch (error) {
         res.status(500).send({ message: "Internal server error" });
       }
     });
+    // massage sent by user mail
+
     // all massage get
     app.get("/contact", async (req, res) => {
       const cursor = engrSakibMassage.find();
@@ -174,8 +210,6 @@ async function run() {
           .json({ success: false, message: "Failed to delete message" });
       }
     });
-
-    
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();

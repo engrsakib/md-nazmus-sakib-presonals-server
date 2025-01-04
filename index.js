@@ -224,6 +224,67 @@ async function run() {
       });
 
 
+
+
+
+      // projects relatd work
+      const engrSakibProjects = client
+        .db("engrsakibProtfolio")
+        .collection("projects");
+
+        app.get("/projects", async (req, res) => {
+          const cursor = engrSakibProjects.find();
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+
+        app.get("/Homeprojects", async (req, res) => {
+          const cursor = engrSakibProjects.find().limit(4);
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+
+        // insert project to database
+        app.post("/projects", async (req, res) => {
+          const project = req.body;
+          const result = await engrSakibProjects.insertOne(project);
+          res.send(result);
+        });
+
+
+        // blog related work
+         const engrSakibBlogs = client
+           .db("engrsakibProtfolio")
+           .collection("blogs");
+
+        // add blog to database
+        app.post("/blogs", async (req, res) => {
+          const blog = req.body;
+          const result = await engrSakibBlogs.insertOne(blog);
+          res.send(result);
+        });
+        
+        // get blogs from database
+        app.get("/blogs", async (req, res) => {
+          const type = req.query.type;
+          // console.log(type)
+          if (type != 'all') {
+            const cursor = engrSakibBlogs.find({ type });
+            const result = await cursor.toArray();
+            res.send(result);
+            return;
+          }
+          const cursor = engrSakibBlogs.find();
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+        // blogs get for home page
+        app.get("/Homeblogs", async (req, res) => {
+          const cursor = engrSakibBlogs.find().limit(4);
+          const result = await cursor.toArray();
+          res.send(result);
+        });
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();

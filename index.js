@@ -280,10 +280,16 @@ async function run() {
         });
         // blogs get for home page
         app.get("/Homeblogs", async (req, res) => {
-          const cursor = engrSakibBlogs.find().limit(4);
-          const result = await cursor.toArray();
-          res.send(result);
+          try {
+            const cursor = engrSakibBlogs.find().sort({ date: -1 }).limit(3); // Sort by latest date in descending order
+            const result = await cursor.toArray();
+            res.send(result);
+          } catch (error) {
+            console.error("Error fetching blogs:", error);
+            res.status(500).send("Failed to fetch blogs");
+          }
         });
+        
 
   } finally {
     // Ensures that the client will close when you finish/error
